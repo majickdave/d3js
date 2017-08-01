@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  
+  <meta charset="utf-8">
+  <title>D3 Replot</title>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+
+  <style>
+
+  body {
+    background-color: #aaaaaa;
+  }
+
+  .legend {
+  font-size: 11px;
+  font-family: arial;
+
+  }
+
+    .legend2 {
+      font-size: 12px;
+      font-family: arial;
+      stroke: #445544;
+    }
+
+    rect {
+      stroke-width: 2;
+    }
+
+    circle {
+      stroke-width: 2;
+    }
+
+    </style>
+  </head>
+
+  <body>
+
+    
+
+    <script>
+
+    // set up svg for all examples
+    var w = 600, h = 400;
+    var svg = d3.select("body").append("svg")
+      .attr("width", w)
+      .attr("height", h)
+      .attr("border", "1px solid")
+
+    var box1Group = svg.append("g")  // uses SVG group element
+
+
+    // 1. Drawing a 180 deg (PI radians) arc
+    var arc = d3.svg.arc()
+    // set attributes
+    .outerRadius(100)
+    .innerRadius(0)
+    .startAngle(-Math.PI/2)
+    .endAngle(Math.PI/2);
+
+    box1Group.append("path")
+    .attr("d", arc)
+      .attr("fill", "darkcyan") // set attribute to arc
+      .attr("transform", "translate(100, 100)"); // move arc
+
+
+  // 2. Drawing 2 180 degree (PI Rad) arc
+  box2Group = svg.append("g") // compose in unique group element
+
+  var arcData = [
+  {"outerRad": 100, "innerRad": 0, "startAng": Math.PI/2, "endAng": -Math.PI/2, "col": "darkcyan"}, 
+  {"outerRad": 100, "innerRad": 0, "startAng": Math.PI/2, "endAng": -Math.PI/2, "col": "tomato"},
+  {"outerRad": 100, "innerRad": 0, "startAng": Math.PI/2, "endAng": -Math.PI/2, "col": "khaki"}
+  ];
+
+  var arc = d3.svg.arc()
+  // set attributes
+  .outerRadius(function(d, i){return d.outerRad;})
+  .innerRadius(function(d, i){return d.innerRad;})
+  .startAngle(function(d, i){return d.startAng;})
+  .endAngle(function(d, i){return d.endAng;})
+
+  // add path to box2Group
+
+  box2Group.selectAll("path")
+    .data(arcData)
+    .enter()
+    .append("path")
+    .attr("d", arc)
+    .attr("fill", function(d){return d.col;}) // set path attr to arc
+    .attr("transform", "translate(300, 100");  // move arc
+
+  // 3. donut -> pie chart based on single object
+  var donut1Group = svg.append("g") // uses SVG group element
+    .attr("transform", "translate(500, 100)"); // moce donut
+
+    var annualBudget = {
+      "amount": [7500, 20000, 15000, 6200, 3600, 35000, 4500, 2000]
+    }
+
+    var color = d3.scale.category20b();
+
+    // unsorted pie layout manager
+    var pie = d3.layout.pie()
+      .sort(null);
+
+    // arc path for 3 donut charts
+    var arc = d3.svg.arc()
+      .outerRadius(100)
+      .innerRadius(70);
+
+    // link data to paths under donut1Group
+    var path = donut1Group.selectAll("path")
+      .data(pie(annualBudget.amount))
+      .enter()
+      .append("path")
+      .attr("fill", function(d, i) { return color(i); })
+      .attr("d", arc);
+
+    // 4. Donut Chart based on array of objects
+    var donut2Group = svg.append("g") // uses SVG group element
+      .attr("transform", "translate(100, 300)")
+
+    var annualBudget = [
+      {"category":"auto", "amount": 7500, "colorCode": "#776622"}
+      {"category":"home", "amount": 20000, "colorCode": "#ffaa22"}
+      {"category":"food", "amount": 15000, "colorCode": "#aa00bb"}
+      {"category":"utilities", "amount": 6200, "colorCode": "#3344cc"}
+      {"category":"entertainment", "amount": 3600, "colorCode": "#ff2288"}
+      {"category":"tuition", "amount": 35000, "colorCode": "#006622"}
+      {"category":"medical", "amount": 4500, "colorCode": "#6688ff"}
+      {"category":"pets", "amount": 2000, "colorCode": "#222223"}
+    ]
+
+
+
+    // update values in pie chart manager
+    pie = d3.layout.pie()
+      .sort(null);
+
+      .value(function(d) {
+        return d.amount
+      })
+
+      .padAngle(0.4);
+
+  // link data to paths under donut2Group
+    path = donut2Group.selectAll("path")
+
+      .data(pie(annualBudget))
+      .enter()
+      .append("path")
+      .attr("d", arc)
+      // fill with colorCode in object Array
+      .style("fill", function(d, i){
+        return d.data.colorCode;
+      })
+
+  // 5. Adding a legend to Donut Chart
+  var donut3Group = svg.append("g") // uses SVG group element
+    .attr("transform", "translate(300, 300)"); // move donut
+
+  var legendRectSize = 8;
+  var legendSpacing = 4;
+
+  // link data ro paths 
+
+    path = donut3Group.selectAll("path")
+
+      .data(pie(annualBudget))
+      .enter()
+      .append("path")
+      .attr("d", arc)
+      // fill with colorCode in object Array
+      .style("fill", function(d, i){
+        return d.data.colorCode;
+      }) 
+
+  var legend = donut3Group.selectAll('.legend')
+    .data(pie(annualBudget))
+    .enter()
+    .append('g')
+    .attr('class', 'legend')
+    .attr('transform', function(d, i) {
+      var height = legendRectSize + legendSpacing;
+      var offset = height * color.domain().length / 2;
+      var horz = -2 * legendRectSize;
+      var vert = i * height - offset;
+      return 'translate(' +horz+ ',' + vert +')';
+    });
+
+    legend.append('rect')
+      .attr('width', legendRectSize)
+      .attr('height', legendRectSize)
+        .style("fill", function(d,i){
+          return d.data.colorCode;} )
+        .style("stroke", function(d,i){
+          return d.data.colorCode;} )
+
+    legend.append('text')
+      .attr('x', legendRectSize +legendSpacing)
+      .attr('y', legendRectSize - legendSpacing + 4)
+      .text(function(d) {return d.data.category; });
+
+
+  // 6. Load data from .csv data and some transitions
+  // asynchronous so requires callback
+  d3.csv('budgetData.csv', function(error, annualBudget) {
+    annualBudget.forEach(function(d) {
+      d.amount = +d.amount;  // ensure returned string d.amount is cast to number
+
+    });
+  // alternative approach to forEach
+  // d3.csv('budgetData.csv', function(error, annualBudget) {
+    // annualBudget = data.map(function(d) { return { category: d.category, amount: +d.amount, colorCode: d.colorCode}; });
+
+    // data is now safely loaded
+    var donut3Group = svg.append("g")
+      .attr("transform", "translate(500, 300)");
+
+    pie.padAngle(.5);
+
+    var arc = d3.svg.arc()
+    .outerRadius(100)
+    .innerRadius(80);
+
+    // link
+
+      path = donut3Group.selectAll("path")
+      // call pie func to extract relevant data
+      .data(pie(annualBudget))
+      .enter()
+      .append("path")
+      .attr("d", arc)
+      .style("fill", "#aaaaaa")
+      .style("stroke", "#aaaaaa")
+      .transition().duration(1000)
+
+      .style("fill", function(d,i){
+        return d.data.colorCode;} )
+      .transition().duration(500)
+      .style("stroke", "black")
+      .style("stroke-width", 2);
+
+
+    legendRectSize = 9;
+    var legendSpacing = 8;
+
+    legend = donut3Group.selectAll('.legend')
+      .data(pie(annualBudget))
+      .enter()
+      .append("g")
+      .attr("class", 'legend2')
+      .attr('transform', function(d, i) {
+      var height = legendRectSize + legendSpacing;
+      var offset = height * color.domain().length / 2;
+      var horz = -2 * legendRectSize;
+      var vert = i * height - offset;
+      return 'translate(' +horz+ ',' + vert +')';
+    });
+
+      legend.append('circle')
+        .attr('r', 0)
+        .style("fill", "none")
+        .style("stroke", "#aaaaaa")
+        .transition().duration(1500)
+        .attr('r', 5)
+        //.style("fill". "#dddddd")
+        .attr('cx', -25)
+        .attr('cy', 28)
+        .transition().duration(1700)
+        .attr('cx', -7)
+        .style("stroke", function(d,i){
+          return d.data.colorCode; })
+
+      legend.append('text')
+        .style("stroke", "none")
+        .style("fill", "#aaaaaa")
+        .transition().duration(5000)
+        .style("fill", "#333333")
+        //.style("stroke", "#333333")
+      .attr('x', 3)
+      .attr('y', 31)
+
+      .text(function(d) { return d.data.category; });
+    });
+
+  // add boxes around all examples
+  var offsets = [[0,0]];
+  var cols = 5, rows = 2;
+  var sz = 2==;
+  for(var i=0; i<cols; i++){
+    for(var j=0; j<rows; j++){
+      offsets.push([i*sz, j*sz]);
+    }
+  }
+
+
+
+
+
+      </script>
+
+      </body>
+
+      </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
